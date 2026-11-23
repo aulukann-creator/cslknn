@@ -480,6 +480,18 @@ def main():
     print(f"▶ İnceleniyor: {url}")
     try:
         cfg = detect(url)
+    except requests.exceptions.ConnectionError as e:
+        if "NameResolution" in str(e) or "Name or service" in str(e) or "No address" in str(e):
+            print("✗ Siteye ulaşılamadı: alan adı bulunamadı. Site kapanmış ya da adres yanlış yazılmış olabilir.")
+        else:
+            print(f"✗ Siteye bağlanılamadı (site yanıt vermiyor ya da bağlantıyı engelliyor): {e}")
+        sys.exit(1)
+    except requests.exceptions.HTTPError as e:
+        code = e.response.status_code if e.response is not None else "?"
+        hint = {403: "site otomatik erişimi engelliyor", 404: "sayfa bulunamadı",
+                451: "bölge kısıtlaması"}.get(code, "site hata döndürdü")
+        print(f"✗ Site HTTP {code} döndürdü ({hint}).")
+        sys.exit(1)
     except Exception as e:
         print(f"✗ Kaynak algılanamadı: {e}")
         sys.exit(1)
