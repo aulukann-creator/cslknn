@@ -40,9 +40,7 @@ jobs:
           distribution: "temurin"
           java-version: "17"
 
-      - name: Android SDK kur
-        uses: android-actions/setup-android@v3
-
+      # Android SDK, GitHub'ın ubuntu imajında hazır kurulu geliyor (ANDROID_HOME)
       - name: Gradle önbelleği
         uses: gradle/actions/setup-gradle@v4
 
