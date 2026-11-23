@@ -1,0 +1,36 @@
+{
+  "id": "trt-belgesel-youtube",
+  "name": "TRT Belgesel (YouTube)",
+  "enabled": true,
+  "lang": "tr",
+  "description": "TRT Belgesel (YouTube) (youtube kalıbıyla otomatik eklendi)",
+  "mainUrl": "https://www.youtube.com",
+  "types": [
+    "Documentary"
+  ],
+  "home": [
+    {
+      "title": "Son Videolar",
+      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCdVBWUBCuREx1Q2Ikw9R8Mw",
+      "horizontal": true
+    }
+  ],
+  "list": {
+    "mode": "xml",
+    "items": "entry",
+    "title": "title",
+    "url": "link@href",
+    "poster": "media|thumbnail@url || group thumbnail@url",
+    "plot": "media|description || group description",
+    "year": "published | year",
+    "kind": "'documentary'",
+    "data": "link@href"
+  },
+  "search": {
+    "local": true
+  },
+  "links": {
+    "mode": "extractor",
+    "referer": "https://www.youtube.com/"
+  }
+}
