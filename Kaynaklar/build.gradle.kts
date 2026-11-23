@@ -42,5 +42,5 @@ tasks.named("preBuild") { dependsOn(generateBundledSources) }
 
 dependencies {
     // Uygulamanın içinde zaten var; yalnızca derleme için gerekli
-    "compileOnly"("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    "compileOnly"("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
 }
