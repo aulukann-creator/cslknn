@@ -11,6 +11,8 @@ on:
     paths-ignore:
       - "*.md"
       - "icons/**"
+      - "index.html"
+      - ".nojekyll"
   workflow_dispatch:
 
 permissions:

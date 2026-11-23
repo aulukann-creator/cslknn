@@ -16,6 +16,10 @@
 
 ## Kurulum
 
+**Tek dokunuşla:** Telefonunuzdan [kurulum sayfasını](https://aulukann-creator.github.io/cslknn/) açıp **CloudStream'e Ekle** butonuna basın.
+
+**Elle:**
+
 1. [CloudStream](https://github.com/recloudstream/cloudstream/releases) uygulamasını kurun.
 2. **Ayarlar → Eklentiler → Depo ekle** yolunu izleyin.
 3. Ad olarak `cslknn` yazın, adres olarak şunu yapıştırın:
