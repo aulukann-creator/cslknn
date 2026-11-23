@@ -17,6 +17,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: "kaynak"
@@ -29,10 +30,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: "src"
-      - uses: actions/checkout@v4
-        with:
-          ref: "builds"
-          path: "builds"
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -59,12 +56,8 @@ jobs:
           git push
           echo "✅ $ID: $ISLEM tamamlandı" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Uygulamaya yayınla
+      - name: Uygulamaya yayınla (derlemeyi başlat)
         if: inputs.islem != 'test'
-        run: |
-          cd src && python3 tools/bundle.py ../builds/sources.json && cd ../builds
-          git config user.email "actions@github.com"
-          git config user.name "GitHub Actions"
-          git add sources.json
-          git commit -m "Kaynaklar güncellendi" || exit 0
-          git push
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run build.yml --ref main --repo "$GITHUB_REPOSITORY"
