@@ -1,0 +1,9 @@
+{
+  "name": "cslknn",
+  "description": "Yasal ve açık kaynaklardan film, dizi, belgesel ve canlı yayın eklentileri",
+  "manifestVersion": 1,
+  "iconUrl": "https://raw.githubusercontent.com/aulukann-creator/cslknn/main/icons/cslknn.png",
+  "pluginLists": [
+    "https://raw.githubusercontent.com/aulukann-creator/cslknn/builds/plugins.json"
+  ]
+}
