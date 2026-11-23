@@ -1,0 +1,37 @@
+{
+  "id": "trt-canli",
+  "name": "TRT Canlı",
+  "enabled": true,
+  "lang": "tr",
+  "mainUrl": "https://www.tabii.com",
+  "icon": "https://raw.githubusercontent.com/aulukann-creator/cslknn/main/icons/trt-canli.png",
+  "types": [
+    "Live"
+  ],
+  "description": "TRT kanallarının resmi, şifresiz canlı yayınları",
+  "home": [
+    {
+      "title": "TRT Kanalları",
+      "url": "https://www.tabii.com/tr/watch/live/trt1",
+      "horizontal": true
+    }
+  ],
+  "list": {
+    "mode": "next_data",
+    "items": "props.pageProps.liveChannels[*]",
+    "title": "title",
+    "url": "slug",
+    "poster": "images[?key=main_image_with_logo].name | fmt:https://cms-tabii-public-image.tabii.com/int/w720/{} || images[?key=logo].name | fmt:https://cms-tabii-public-image.tabii.com/int/w300/{}",
+    "kind": "'live'",
+    "data": "media[?drmSchema=clear][?type=hls].url"
+  },
+  "search": {
+    "local": true,
+    "test": "TRT"
+  },
+  "links": {
+    "mode": "direct",
+    "type": "hls",
+    "referer": "https://www.tabii.com/"
+  }
+}

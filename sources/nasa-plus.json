@@ -1,0 +1,49 @@
+{
+  "id": "nasa-plus",
+  "name": "NASA+",
+  "enabled": true,
+  "lang": "en",
+  "mainUrl": "https://plus.nasa.gov",
+  "icon": "https://raw.githubusercontent.com/aulukann-creator/cslknn/main/icons/nasa-plus.png",
+  "types": ["Documentary"],
+  "description": "NASA'nın resmi yayın platformu: belgeseller, uzay görevleri, 4K yapımlar (kamu malı)",
+  "home": [
+    { "title": "Yeni Eklenenler", "url": "https://plus.nasa.gov/wp-json/wp/v2/video?per_page=24&page={page}", "horizontal": true },
+    { "title": "Belgeseller", "url": "https://plus.nasa.gov/wp-json/wp/v2/video?topic=36&per_page=24&page={page}", "horizontal": true },
+    { "title": "NASA+ Yapımları", "url": "https://plus.nasa.gov/wp-json/wp/v2/video?topic=35&per_page=24&page={page}", "horizontal": true },
+    { "title": "Uzayda İnsan", "url": "https://plus.nasa.gov/wp-json/wp/v2/video?topic=5&per_page=24&page={page}", "horizontal": true },
+    { "title": "Güneş Sistemi", "url": "https://plus.nasa.gov/wp-json/wp/v2/video?topic=28&per_page=24&page={page}", "horizontal": true },
+    { "title": "Evren", "url": "https://plus.nasa.gov/wp-json/wp/v2/video?topic=22&per_page=24&page={page}", "horizontal": true },
+    { "title": "Dünya", "url": "https://plus.nasa.gov/wp-json/wp/v2/video?topic=29&per_page=24&page={page}", "horizontal": true },
+    { "title": "Tarih", "url": "https://plus.nasa.gov/wp-json/wp/v2/video?topic=37&per_page=24&page={page}", "horizontal": true },
+    { "title": "Teknoloji", "url": "https://plus.nasa.gov/wp-json/wp/v2/video?topic=31&per_page=24&page={page}", "horizontal": true },
+    { "title": "Çocuklar İçin", "url": "https://plus.nasa.gov/wp-json/wp/v2/video?topic=33&per_page=24&page={page}", "horizontal": true },
+    { "title": "İspanyolca", "url": "https://plus.nasa.gov/wp-json/wp/v2/video?topic=34&per_page=24&page={page}", "horizontal": true }
+  ],
+  "list": {
+    "mode": "json",
+    "items": "[*]",
+    "title": "title.rendered | unescape | text",
+    "url": "_links.self[0].href",
+    "poster": "featured_image",
+    "year": "date | year",
+    "pageSize": 24
+  },
+  "search": {
+    "url": "https://plus.nasa.gov/wp-json/wp/v2/video?search={query}&per_page=24&page={page}",
+    "test": "Europa"
+  },
+  "detail": {
+    "mode": "json",
+    "title": "title.rendered | unescape | text",
+    "plot": "excerpt.rendered | text || content.rendered | text",
+    "poster": "featured_image",
+    "background": "featured_image",
+    "year": "date | year",
+    "duration": "meta.runtime | sec2min",
+    "rating": "meta.rating",
+    "kind": "'documentary'",
+    "data": "meta.video-url || meta.youtube-url"
+  },
+  "links": { "mode": "direct", "referer": "https://plus.nasa.gov/" }
+}
