@@ -1,0 +1,48 @@
+[
+    {
+        "iconUrl": "https://raw.githubusercontent.com/aulukann-creator/cslknn/main/icons/internetarchive.png",
+        "fileHash": "sha256-953c34821acb4841b530551aafe8b073e82077192e4c740effefb8138588d00e",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/aulukann-creator/cslknn",
+        "fileSize": 30404,
+        "status": 1,
+        "language": "tr",
+        "authors": [
+            "cslknn"
+        ],
+        "tvTypes": [
+            "Movie",
+            "TvSeries",
+            "Cartoon",
+            "Documentary"
+        ],
+        "version": 1,
+        "internalName": "InternetArchive",
+        "description": "Internet Archive'daki kamu mal\u0131 ve a\u00e7\u0131k lisansl\u0131 filmler, diziler, \u00e7izgi filmler ve belgeseller",
+        "url": "https://raw.githubusercontent.com/aulukann-creator/cslknn/builds/InternetArchive.cs3",
+        "name": "InternetArchive"
+    },
+    {
+        "iconUrl": "https://raw.githubusercontent.com/aulukann-creator/cslknn/main/icons/kaynaklar.png",
+        "fileHash": "sha256-de10c99c480ae7af5a0f81ed2a07d75b3c216d521c040b19dbe01ef00e9030ee",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/aulukann-creator/cslknn",
+        "fileSize": 64093,
+        "status": 1,
+        "language": "tr",
+        "authors": [
+            "cslknn"
+        ],
+        "tvTypes": [
+            "Documentary",
+            "Live",
+            "Movie",
+            "TvSeries"
+        ],
+        "version": 2,
+        "internalName": "Kaynaklar",
+        "description": "Yap\u0131land\u0131rma tabanl\u0131 kaynak motoru: NASA+, TRT canl\u0131 yay\u0131nlar\u0131 ve repoya eklenen t\u00fcm yasal kaynaklar",
+        "url": "https://raw.githubusercontent.com/aulukann-creator/cslknn/builds/Kaynaklar.cs3",
+        "name": "Kaynaklar"
+    }
+]

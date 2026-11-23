@@ -1,0 +1,261 @@
+[
+ {
+  "id": "dizilla",
+  "name": "Dizilla",
+  "enabled": true,
+  "lang": "tr",
+  "description": "Dizilla (html kalıbıyla otomatik eklendi)",
+  "mainUrl": "https://dizilla.la",
+  "types": [
+   "TvSeries"
+  ],
+  "home": [
+   {
+    "title": "Öne Çıkanlar",
+    "url": "https://dizilla.la",
+    "horizontal": true
+   }
+  ],
+  "list": {
+   "mode": "html",
+   "items": "a[href*='/dizi/']:has(img), a[href*='/series/']:has(img)",
+   "title": "img@alt || @title || a@title || h2 || h3 || h4 || .title || @aria-label | regex:^(?:\\d+\\.\\s*)?([^,]+) || a || @text",
+   "url": "@href | absurl || a@href | absurl",
+   "poster": "img@data-src | absurl || img@data-lazy-src | absurl || img@srcset | regex:^(\\S+) | absurl || img@src | absurl",
+   "kind": "'series'"
+  },
+  "search": {
+   "local": true
+  },
+  "detail": {
+   "mode": "ld_json",
+   "root": "[?@type=TVSeries]",
+   "title": "name",
+   "plot": "description",
+   "poster": "image | absurl",
+   "year": "datePublished | year",
+   "rating": "aggregateRating.ratingValue",
+   "kind": "'series'",
+   "episodes": {
+    "items": "containsSeason[*].episode[*]",
+    "name": "name",
+    "season": "url | regex:-(\\d+)-sezon",
+    "episode": "episodeNumber",
+    "data": "url | absurl"
+   }
+  },
+  "links": {
+   "mode": "html",
+   "items": "",
+   "src": "video source@src || video@src || meta[property=\"og:video:secure_url\"]@content || meta[property=\"og:video\"]@content || meta[property=\"og:video:url\"]@content || iframe[src*=youtube]@src || iframe[src*=vimeo]@src || iframe[src*=dailymotion]@src || iframe[allowfullscreen]@src || iframe@src | absurl || script@html | regex:(https://[^\"\\\\\\s]+/(?:iframe|embed|player)[^\"\\\\\\s]*)",
+   "label": "'Oynatıcı'"
+  }
+ },
+ {
+  "id": "nasa-plus",
+  "name": "NASA+",
+  "enabled": true,
+  "lang": "en",
+  "mainUrl": "https://plus.nasa.gov",
+  "icon": "https://raw.githubusercontent.com/aulukann-creator/cslknn/main/icons/nasa-plus.png",
+  "types": [
+   "Documentary"
+  ],
+  "description": "NASA'nın resmi yayın platformu: belgeseller, uzay görevleri, 4K yapımlar (kamu malı)",
+  "home": [
+   {
+    "title": "Yeni Eklenenler",
+    "url": "https://plus.nasa.gov/wp-json/wp/v2/video?per_page=24&page={page}",
+    "horizontal": true
+   },
+   {
+    "title": "Belgeseller",
+    "url": "https://plus.nasa.gov/wp-json/wp/v2/video?topic=36&per_page=24&page={page}",
+    "horizontal": true
+   },
+   {
+    "title": "NASA+ Yapımları",
+    "url": "https://plus.nasa.gov/wp-json/wp/v2/video?topic=35&per_page=24&page={page}",
+    "horizontal": true
+   },
+   {
+    "title": "Uzayda İnsan",
+    "url": "https://plus.nasa.gov/wp-json/wp/v2/video?topic=5&per_page=24&page={page}",
+    "horizontal": true
+   },
+   {
+    "title": "Güneş Sistemi",
+    "url": "https://plus.nasa.gov/wp-json/wp/v2/video?topic=28&per_page=24&page={page}",
+    "horizontal": true
+   },
+   {
+    "title": "Evren",
+    "url": "https://plus.nasa.gov/wp-json/wp/v2/video?topic=22&per_page=24&page={page}",
+    "horizontal": true
+   },
+   {
+    "title": "Dünya",
+    "url": "https://plus.nasa.gov/wp-json/wp/v2/video?topic=29&per_page=24&page={page}",
+    "horizontal": true
+   },
+   {
+    "title": "Tarih",
+    "url": "https://plus.nasa.gov/wp-json/wp/v2/video?topic=37&per_page=24&page={page}",
+    "horizontal": true
+   },
+   {
+    "title": "Teknoloji",
+    "url": "https://plus.nasa.gov/wp-json/wp/v2/video?topic=31&per_page=24&page={page}",
+    "horizontal": true
+   },
+   {
+    "title": "Çocuklar İçin",
+    "url": "https://plus.nasa.gov/wp-json/wp/v2/video?topic=33&per_page=24&page={page}",
+    "horizontal": true
+   },
+   {
+    "title": "İspanyolca",
+    "url": "https://plus.nasa.gov/wp-json/wp/v2/video?topic=34&per_page=24&page={page}",
+    "horizontal": true
+   }
+  ],
+  "list": {
+   "mode": "json",
+   "items": "[*]",
+   "title": "title.rendered | unescape | text",
+   "url": "_links.self[0].href",
+   "poster": "featured_image",
+   "year": "date | year",
+   "pageSize": 24
+  },
+  "search": {
+   "url": "https://plus.nasa.gov/wp-json/wp/v2/video?search={query}&per_page=24&page={page}",
+   "test": "Europa"
+  },
+  "detail": {
+   "mode": "json",
+   "title": "title.rendered | unescape | text",
+   "plot": "excerpt.rendered | text || content.rendered | text",
+   "poster": "featured_image",
+   "background": "featured_image",
+   "year": "date | year",
+   "duration": "meta.runtime | sec2min",
+   "rating": "meta.rating",
+   "kind": "'documentary'",
+   "data": "meta.video-url || meta.youtube-url"
+  },
+  "links": {
+   "mode": "direct",
+   "referer": "https://plus.nasa.gov/"
+  }
+ },
+ {
+  "id": "trt-arsiv",
+  "name": "TRT Arşiv",
+  "enabled": true,
+  "lang": "tr",
+  "description": "TRT Arşiv (youtube kalıbıyla otomatik eklendi)",
+  "mainUrl": "https://www.youtube.com",
+  "types": [
+   "Documentary"
+  ],
+  "home": [
+   {
+    "title": "Son Videolar",
+    "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCQkPrgNhhdOJR3OzTdWd5lQ",
+    "horizontal": true
+   }
+  ],
+  "list": {
+   "mode": "xml",
+   "items": "entry",
+   "title": "title",
+   "url": "link@href",
+   "poster": "media|thumbnail@url || group thumbnail@url",
+   "plot": "media|description || group description",
+   "year": "published | year",
+   "kind": "'documentary'",
+   "data": "link@href"
+  },
+  "search": {
+   "local": true
+  },
+  "links": {
+   "mode": "extractor",
+   "referer": "https://www.youtube.com/"
+  }
+ },
+ {
+  "id": "trt-belgesel-youtube",
+  "name": "TRT Belgesel (YouTube)",
+  "enabled": true,
+  "lang": "tr",
+  "description": "TRT Belgesel (YouTube) (youtube kalıbıyla otomatik eklendi)",
+  "mainUrl": "https://www.youtube.com",
+  "types": [
+   "Documentary"
+  ],
+  "home": [
+   {
+    "title": "Son Videolar",
+    "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCdVBWUBCuREx1Q2Ikw9R8Mw",
+    "horizontal": true
+   }
+  ],
+  "list": {
+   "mode": "xml",
+   "items": "entry",
+   "title": "title",
+   "url": "link@href",
+   "poster": "media|thumbnail@url || group thumbnail@url",
+   "plot": "media|description || group description",
+   "year": "published | year",
+   "kind": "'documentary'",
+   "data": "link@href"
+  },
+  "search": {
+   "local": true
+  },
+  "links": {
+   "mode": "extractor",
+   "referer": "https://www.youtube.com/"
+  }
+ },
+ {
+  "id": "trt-canli",
+  "name": "TRT Canlı",
+  "enabled": true,
+  "lang": "tr",
+  "mainUrl": "https://www.tabii.com",
+  "icon": "https://raw.githubusercontent.com/aulukann-creator/cslknn/main/icons/trt-canli.png",
+  "types": [
+   "Live"
+  ],
+  "description": "TRT kanallarının resmi, şifresiz canlı yayınları",
+  "home": [
+   {
+    "title": "TRT Kanalları",
+    "url": "https://www.tabii.com/tr/watch/live/trt1",
+    "horizontal": true
+   }
+  ],
+  "list": {
+   "mode": "next_data",
+   "items": "props.pageProps.liveChannels[*]",
+   "title": "title",
+   "url": "slug",
+   "poster": "images[?key=main_image_with_logo].name | fmt:https://cms-tabii-public-image.tabii.com/int/w720/{} || images[?key=logo].name | fmt:https://cms-tabii-public-image.tabii.com/int/w300/{}",
+   "kind": "'live'",
+   "data": "media[?drmSchema=clear][?type=hls].url"
+  },
+  "search": {
+   "local": true,
+   "test": "TRT"
+  },
+  "links": {
+   "mode": "direct",
+   "type": "hls",
+   "referer": "https://www.tabii.com/"
+  }
+ }
+]
