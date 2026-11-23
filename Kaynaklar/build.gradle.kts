@@ -39,3 +39,8 @@ extensions.getByName<com.android.build.gradle.BaseExtension>("android")
     .sourceSets.getByName("main").java.srcDir(generatedDir)
 
 tasks.named("preBuild") { dependsOn(generateBundledSources) }
+
+dependencies {
+    // Uygulamanın içinde zaten var; yalnızca derleme için gerekli
+    "compileOnly"("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+}

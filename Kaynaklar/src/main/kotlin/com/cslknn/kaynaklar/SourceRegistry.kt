@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Kaynak tariflerinin tutulduğu yer.
- *  1. Eklentinin içine gömülü kopya (derleme anındaki sources/*.json) -> her zaman var
+ *  1. Eklentinin içine gömülü kopya (derleme anındaki sources klasörü) -> her zaman var
  *  2. Uzak kopya (builds dalındaki sources.json) -> açılışta arka planda indirilir, gömülüyü günceller
  */
 object SourceRegistry {
