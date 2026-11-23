@@ -80,14 +80,25 @@ def detect_youtube(url: str) -> dict | None:
         m = re.search(r"/channel/(UC[\w-]{20,})", p.path)
         cid = m.group(1) if m else None
         if not cid:
-            html = get(url, cookies={"CONSENT": "YES+1"}).text
-            m = re.search(r'"(?:channelId|externalId)":"(UC[\w-]{20,})"', html) or \
-                re.search(r'<link rel="canonical" href="https://www\.youtube\.com/channel/(UC[\w-]+)"', html)
-            cid = m.group(1) if m else None
-            t = re.search(r'<meta property="og:title" content="([^"]+)"', html)
-            title = t.group(1) if t else None
+            # Kanal kimliğini sayfadan bul; çerez onayı ve mobil sürüm dahil birkaç deneme
+            cookies = {"CONSENT": "YES+1", "SOCS": "CAI"}
+            mobile = url.replace("://www.", "://m.").replace("://youtube.", "://m.youtube.")
+            for attempt in (url, url.rstrip("/") + "/videos", mobile):
+                try:
+                    html = get(attempt, cookies=cookies).text
+                except Exception:
+                    continue
+                m = (re.search(r'"(?:channelId|externalId|browseId)":"(UC[\w-]{22})"', html)
+                     or re.search(r'itemprop="(?:channelId|identifier)" content="(UC[\w-]{22})"', html)
+                     or re.search(r'youtube\.com/channel/(UC[\w-]{22})', html))
+                if m:
+                    cid = m.group(1)
+                    t = re.search(r'<meta property="og:title" content="([^"]+)"', html)
+                    title = t.group(1) if t else None
+                    break
         if not cid:
-            raise RuntimeError("YouTube kanal kimliği bulunamadı")
+            raise RuntimeError("YouTube kanal kimliği bulunamadı. Kanalın youtube.com/channel/UC... "
+                               "biçimindeki adresini girin (Kanal sayfası → Hakkında → Paylaş → Kanal kimliğini kopyala).")
         feed = f"https://www.youtube.com/feeds/videos.xml?channel_id={cid}"
     if not title:
         try:
