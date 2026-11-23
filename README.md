@@ -54,6 +54,20 @@ https://raw.githubusercontent.com/aulukann-creator/cslknn/main/repo.json
 
 Bir kaynağı kapatmak, açmak, silmek ya da yeniden test etmek için **Actions → Kaynak Yönet** kullanılır.
 
+### Bilgisayardan ekleme (GitHub'ın ulaşamadığı siteler için)
+
+Bazı resmi siteler yurt dışı sunuculara kapalıdır ama ev bağlantınızdan açılır. Bu durumda ekleme bilgisayardan yapılır:
+
+1. Bir kez kurulum: [Python](https://www.python.org/downloads/) (kurarken *Add python.exe to PATH* işaretleyin) ve [Git](https://git-scm.com/download/win). Ardından:
+   ```
+   git clone https://github.com/aulukann-creator/cslknn
+   ```
+2. Her ekleme için `cslknn` klasöründe:
+   ```
+   powershell -ExecutionPolicy Bypass -File tools\kaynak-ekle.ps1 -Adres "https://ornek.com" -Tur belgesel
+   ```
+   Yalnızca denemek için sona `-Dene` ekleyin.
+
 Algılanan kalıplar: YouTube kanal/oynatma listesi · M3U kanal listesi · RSS/Atom video akışı · WordPress (wp-json) · JSON API · Next.js sayfaları · genel HTML (kart yapısı + og etiketleri + gömülü oynatıcı).
 
 Tarif dosyalarının yapısı için `sources/` içindeki örneklere ve `tools/engine.py` başındaki açıklamaya bakın. Bir tarifi elle denemek için:
