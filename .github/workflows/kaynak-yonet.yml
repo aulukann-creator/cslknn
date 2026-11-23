@@ -1,0 +1,70 @@
+name: Kaynak Yönet
+
+# Bir kaynağı kapatmak, açmak, silmek veya yeniden test etmek için
+on:
+  workflow_dispatch:
+    inputs:
+      kimlik:
+        description: "Kaynak kimliği (sources klasöründeki dosya adı, .json olmadan; örn. nasa-plus)"
+        required: true
+        type: string
+      islem:
+        description: "İşlem"
+        required: true
+        default: "test"
+        type: choice
+        options: [test, kapat, ac, sil]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: "kaynak"
+  cancel-in-progress: false
+
+jobs:
+  yonet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: "src"
+      - uses: actions/checkout@v4
+        with:
+          ref: "builds"
+          path: "builds"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -q -r src/tools/requirements.txt
+
+      - name: İşlemi uygula
+        working-directory: src
+        env:
+          ID: ${{ inputs.kimlik }}
+          ISLEM: ${{ inputs.islem }}
+        run: |
+          FILE="sources/${ID}.json"
+          [ -f "$FILE" ] || { echo "❌ $FILE bulunamadı" | tee -a "$GITHUB_STEP_SUMMARY"; exit 1; }
+          case "$ISLEM" in
+            test)  { echo '```'; python3 tools/engine.py test "$FILE" -v 2>&1; echo '```'; } | tee -a "$GITHUB_STEP_SUMMARY"; exit 0 ;;
+            kapat) python3 -c "import json,sys;p=sys.argv[1];d=json.load(open(p,encoding='utf-8'));d['enabled']=False;open(p,'w',encoding='utf-8').write(json.dumps(d,ensure_ascii=False,indent=2)+'\n')" "$FILE" ;;
+            ac)    python3 -c "import json,sys;p=sys.argv[1];d=json.load(open(p,encoding='utf-8'));d['enabled']=True;open(p,'w',encoding='utf-8').write(json.dumps(d,ensure_ascii=False,indent=2)+'\n')" "$FILE" ;;
+            sil)   git rm -q "$FILE" ;;
+          esac
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+          git add -A sources
+          git commit -m "Kaynak $ISLEM: $ID"
+          git push
+          echo "✅ $ID: $ISLEM tamamlandı" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Uygulamaya yayınla
+        if: inputs.islem != 'test'
+        run: |
+          cd src && python3 tools/bundle.py ../builds/sources.json && cd ../builds
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+          git add sources.json
+          git commit -m "Kaynaklar güncellendi" || exit 0
+          git push

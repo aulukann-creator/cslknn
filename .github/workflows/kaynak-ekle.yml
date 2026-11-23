@@ -1,0 +1,112 @@
+name: Kaynak Ekle
+
+# Telefondan: GitHub → Actions → "Kaynak Ekle" → Run workflow → adresi yazın → Run
+on:
+  workflow_dispatch:
+    inputs:
+      adres:
+        description: "Sitenin, kanalın, oynatma listesinin veya M3U/RSS dosyasının adresi"
+        required: true
+        type: string
+      ad:
+        description: "Uygulamada görünecek ad (boş bırakılırsa otomatik)"
+        required: false
+        type: string
+      tur:
+        description: "İçerik türü"
+        required: true
+        default: "otomatik"
+        type: choice
+        options: [otomatik, film, dizi, belgesel, canli, cizgi, video]
+      dil:
+        description: "Dil"
+        required: true
+        default: "tr"
+        type: choice
+        options: [tr, en]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: "kaynak"
+  cancel-in-progress: false
+
+jobs:
+  ekle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kaynak kodu al
+        uses: actions/checkout@v4
+        with:
+          path: "src"
+
+      - name: builds dalını al
+        uses: actions/checkout@v4
+        with:
+          ref: "builds"
+          path: "builds"
+
+      - name: Python kur
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Bağımlılıklar
+        run: pip install -q -r src/tools/requirements.txt
+
+      - name: Kalıbı algıla ve test et
+        id: detect
+        working-directory: src
+        env:
+          ADRES: ${{ inputs.adres }}
+          AD: ${{ inputs.ad }}
+          TUR: ${{ inputs.tur }}
+          DIL: ${{ inputs.dil }}
+        run: |
+          set -o pipefail
+          python3 tools/detect.py "$ADRES" --name "$AD" --kind "$TUR" --lang "$DIL" --out sources 2>&1 | tee /tmp/rapor.txt
+
+      - name: Repoya ekle
+        working-directory: src
+        env:
+          NAME: ${{ steps.detect.outputs.name }}
+          FILE: ${{ steps.detect.outputs.path }}
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+          git add "$FILE"
+          git commit -m "Kaynak eklendi: $NAME" || { echo "Değişiklik yok"; exit 0; }
+          git push
+
+      - name: Uygulamaya yayınla
+        run: |
+          cd src && python3 tools/bundle.py ../builds/sources.json && cd ../builds
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+          git add sources.json
+          git commit -m "Kaynaklar güncellendi" || exit 0
+          git push
+
+      - name: Rapor
+        if: always()
+        env:
+          NAME: ${{ steps.detect.outputs.name }}
+          PATTERN: ${{ steps.detect.outputs.pattern }}
+          OK: ${{ steps.detect.outputs.ok }}
+        run: |
+          {
+            if [ "$OK" = "true" ]; then
+              echo "## ✅ $NAME eklendi"
+              echo "Kalıp: **$PATTERN**. CloudStream'i yeniden başlatınca **Kaynaklar** eklentisinde görünür."
+            elif [ -n "$NAME" ]; then
+              echo "## ⚠️ $NAME kapalı olarak eklendi"
+              echo "Kalıp: **$PATTERN**. Test tam geçmedi; tarif \`sources/\` klasöründe, düzeltilip açılabilir."
+            else
+              echo "## ❌ Kaynak eklenemedi"
+            fi
+            echo
+            echo '```'
+            cat /tmp/rapor.txt 2>/dev/null || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

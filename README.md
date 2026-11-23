@@ -35,7 +35,33 @@ https://raw.githubusercontent.com/aulukann-creator/cslknn/main/repo.json
 
 | | Eklenti | İçerik | Durum |
 |---|---|---|---|
+| <img src="icons/kaynaklar.png" width="32"> | **Kaynaklar** | Motor eklentisi: `sources/` klasöründeki tüm kaynaklar (NASA+, TRT Canlı ve eklediğiniz her şey) | ✅ |
 | <img src="icons/internetarchive.png" width="32"> | **Internet Archive** | Kamu malı filmler, klasik TV dizileri, çizgi filmler, sessiz sinema | ✅ |
+
+### Kaynaklar eklentisindeki siteler
+
+| | Kaynak | İçerik |
+|---|---|---|
+| <img src="icons/nasa-plus.png" width="32"> | **NASA+** | NASA'nın resmi belgeselleri ve 4K yapımları |
+| <img src="icons/trt-canli.png" width="32"> | **TRT Canlı** | TRT kanallarının resmi, şifresiz canlı yayınları |
+
+## Yeni kaynak ekleme (tek dokunuş)
+
+1. Repoda **Actions → Kaynak Ekle → Run workflow** açın.
+2. Sitenin, YouTube kanalının, oynatma listesinin ya da M3U/RSS dosyasının adresini yazın, türü seçin, **Run workflow**'a basın.
+3. Sistem sitenin yapısını algılar, tarifi üretir, canlı test eder ve repoya ekler. Sonuç raporu işin özet sayfasında görünür.
+4. CloudStream'i yeniden başlatın; yeni kaynak **Kaynaklar** eklentisinde görünür.
+
+Bir kaynağı kapatmak, açmak, silmek ya da yeniden test etmek için **Actions → Kaynak Yönet** kullanılır.
+
+Algılanan kalıplar: YouTube kanal/oynatma listesi · M3U kanal listesi · RSS/Atom video akışı · WordPress (wp-json) · JSON API · Next.js sayfaları · genel HTML (kart yapısı + og etiketleri + gömülü oynatıcı).
+
+Tarif dosyalarının yapısı için `sources/` içindeki örneklere ve `tools/engine.py` başındaki açıklamaya bakın. Bir tarifi elle denemek için:
+
+```
+pip install -r tools/requirements.txt
+python3 tools/engine.py test sources/nasa-plus.json -v
+```
 
 ## İlke
 
