@@ -2,7 +2,7 @@ import java.util.Base64
 
 // Sürüm numarası tam sayı olmalı; motor kodu değiştiğinde bir artırın.
 // Yalnızca sources/*.json değişirse artırmaya gerek yok: eklenti tarifleri uzaktan günceller.
-version = 1
+version = 2
 
 cloudstream {
     description = "Yapılandırma tabanlı kaynak motoru: NASA+, TRT canlı yayınları ve repoya eklenen tüm yasal kaynaklar"

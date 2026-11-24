@@ -304,7 +304,7 @@ def select(node: JNode | HNode, spec: str | None, base: str) -> list[str]:
     alts = [a for a in re.split(r"\s+\|\|\s+", spec)]  # 'a || b' -> a boşsa b
     for alt in alts:
         parts = _split_pipes(alt)
-        vals = raw_select(node, parts[0])
+        vals = [v for v in raw_select(node, parts[0]) if v.strip()]
         vals = apply_transforms(vals, parts[1:], base)
         if vals:
             return vals
@@ -553,9 +553,12 @@ class Engine:
 
 
 def test(path: str, verbose: bool = False) -> bool:
-    src = json.load(open(path, encoding="utf-8"))
+    with open(path, encoding="utf-8") as f:
+        src = json.load(f)
     eng = Engine(src)
-    ok = True
+    ok = bool(src.get("home"))
+    if not ok:
+        print("  ✗ Ana sayfa bölümü tanımlanmamış.")
     print(f"■ {src['name']} ({src['id']})")
     first_item = None
     for sec in src.get("home", []):
@@ -582,6 +585,10 @@ def test(path: str, verbose: bool = False) -> bool:
     if first_item:
         try:
             d = eng.load(first_item.url)
+            if not d.get("title"):
+                raise ValueError("Detay başlığı bulunamadı; tarif doğrulanamadı.")
+            if d.get("kind") in ("series", "tvseries", "dizi") and not d["episodes"]:
+                raise ValueError("Dizi bulundu ancak sezon/bölüm listesi okunamadı. Bölüm tarifi gerekli.")
             print(f"  ✓ Detay      {d['title']} [{d['kind']}] süre={d.get('duration')} yıl={d.get('year')} "
                   f"bölüm={len(d['episodes'])}")
             if verbose:
@@ -593,14 +600,20 @@ def test(path: str, verbose: bool = False) -> bool:
             for l in links[:4]:
                 print(f"      - [{l['via']}] {l['url'][:100]}")
             if links and links[0]["via"] == "media":
-                r = eng.f.s.get(links[0]["url"], timeout=20, stream=True)
-                note = "" if r.ok else "  (403 ise bölge kısıtı olabilir; Türkiye'den çalışır)"
-                print(f"  {'✓' if r.ok else '!'} Oynatma    HTTP {r.status_code}{note}")
+                headers = dict(src.get("links", {}).get("headers") or {})
+                headers["Referer"] = src.get("links", {}).get("referer") or eng.base.rstrip("/") + "/"
+                with eng.f.s.get(links[0]["url"], headers=headers, timeout=20, stream=True) as r:
+                    print(f"  {'✓' if r.ok else '✗'} Oynatma    HTTP {r.status_code}")
+                    ok = ok and r.ok
+            elif links:
+                print("  ! Oynatma    Gömülü oynatıcı bulundu; çözümleme CloudStream cihazında doğrulanmalı.")
             ok = ok and bool(links)
         except Exception as e:
             ok = False
             print(f"  ✗ Detay/Bağlantı: {e}")
-    print("  SONUÇ:", "BAŞARILI" if ok else "SORUNLU")
+    if not first_item:
+        ok = False
+    print("  SONUÇ:", "TARİF TESTİ BAŞARILI" if ok else "SORUNLU")
     return ok
 
 

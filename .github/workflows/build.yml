@@ -36,6 +36,17 @@ jobs:
       - name: Eski paketleri temizle
         run: rm -f $GITHUB_WORKSPACE/builds/*.cs3
 
+      - name: Python 3.12 kur
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Kaynak motorunu test et
+        working-directory: src
+        run: |
+          pip install -q -r tools/requirements.txt
+          python -m unittest discover -s tools -p 'test_*.py' -v
+
       - name: JDK 17 kur
         uses: actions/setup-java@v4
         with:

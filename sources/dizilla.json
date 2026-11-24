@@ -1,0 +1,52 @@
+{
+  "id": "dizilla",
+  "name": "Dizilla",
+  "enabled": true,
+  "lang": "tr",
+  "description": "Dizilla (html kalıbıyla otomatik eklendi)",
+  "mainUrl": "https://dizilla.la",
+  "types": [
+    "TvSeries"
+  ],
+  "home": [
+    {
+      "title": "Öne Çıkanlar",
+      "url": "https://dizilla.la",
+      "horizontal": true
+    }
+  ],
+  "list": {
+    "mode": "html",
+    "items": "a[href*='/dizi/']:has(img), a[href*='/series/']:has(img)",
+    "title": "img@alt || @title || a@title || h2 || h3 || h4 || .title || @aria-label | regex:^(?:\\d+\\.\\s*)?([^,]+) || a || @text",
+    "url": "@href | absurl || a@href | absurl",
+    "poster": "img@data-src | absurl || img@data-lazy-src | absurl || img@srcset | regex:^(\\S+) | absurl || img@src | absurl",
+    "kind": "'series'"
+  },
+  "search": {
+    "local": true
+  },
+  "detail": {
+    "mode": "ld_json",
+    "root": "[?@type=TVSeries]",
+    "title": "name",
+    "plot": "description",
+    "poster": "image | absurl",
+    "year": "datePublished | year",
+    "rating": "aggregateRating.ratingValue",
+    "kind": "'series'",
+    "episodes": {
+      "items": "containsSeason[*].episode[*]",
+      "name": "name",
+      "season": "url | regex:-(\\d+)-sezon",
+      "episode": "episodeNumber",
+      "data": "url | absurl"
+    }
+  },
+  "links": {
+    "mode": "html",
+    "items": "",
+    "src": "video source@src || video@src || meta[property=\"og:video:secure_url\"]@content || meta[property=\"og:video\"]@content || meta[property=\"og:video:url\"]@content || iframe[src*=youtube]@src || iframe[src*=vimeo]@src || iframe[src*=dailymotion]@src || iframe[allowfullscreen]@src || iframe@src | absurl || script@html | regex:(https://[^\"\\\\\\s]+/(?:iframe|embed|player)[^\"\\\\\\s]*)",
+    "label": "'Oynatıcı'"
+  }
+}

@@ -26,6 +26,7 @@ import json
 import os
 import re
 import sys
+import tempfile
 import urllib.parse
 
 import requests
@@ -253,7 +254,8 @@ def _html_links() -> dict:
         "src": ("video source@src || video@src || meta[property=\"og:video:secure_url\"]@content || "
                 "meta[property=\"og:video\"]@content || meta[property=\"og:video:url\"]@content || "
                 "iframe[src*=youtube]@src || iframe[src*=vimeo]@src || iframe[src*=dailymotion]@src || "
-                "iframe[allowfullscreen]@src || iframe@src"),
+                "iframe[allowfullscreen]@src || iframe@src | absurl || "
+                r'script@html | regex:(https://[^"\\\s]+/(?:iframe|embed|player)[^"\\\s]*)'),
         "label": "'Oynatıcı'",
     }
 
@@ -402,36 +404,68 @@ def detect_html(url: str, html: str) -> dict | None:
         img = a.find("img")
         if not img:
             continue
-        parent = a.parent
+        parent = a if a.get("class") else a.parent
         for _ in range(3):  # kartın kendisi genelde bağlantının 0-2 üst seviyesidir
             if parent is None or parent.name in ("body", "html"):
+                break
+            # Bir satırdaki bütün kartları tek öğe sanma.
+            if parent.name != "a" and len(parent.select("a[href]")) > 1:
                 break
             sig = _signature(parent)
             if parent.get("class"):
                 cards[sig].append(parent)
                 break
             parent = parent.parent
-    if not cards:
-        return None
-    sig, els = max(cards.items(), key=lambda kv: len(kv[1]))
-    if len(els) < 4:
-        return None
-    tag, _, cls = sig.partition(".")
-    item_sel = tag + ("." + ".".join(cls.split(".")) if cls else "")
-    title = "img@alt || a@title || h2 || h3 || h4 || .title || a"
+    series_selector = "a[href*='/dizi/']:has(img), a[href*='/series/']:has(img)"
+    series_cards = soup.select(series_selector)
+    if len(series_cards) >= 4:
+        item_sel, els = series_selector, series_cards
+    else:
+        if not cards:
+            return None
+        sig, els = max(cards.items(), key=lambda kv: len(kv[1]))
+        if len(els) < 4:
+            return None
+        tag, _, cls = sig.partition(".")
+        item_sel = tag + ("." + ".".join(cls.split(".")) if cls else "")
+    title = ("img@alt || @title || a@title || h2 || h3 || h4 || .title || "
+             r"@aria-label | regex:^(?:\d+\.\s*)?([^,]+) || a || @text")
     poster = "img@data-src | absurl || img@data-lazy-src | absurl || img@srcset | regex:^(\\S+) | absurl || img@src | absurl"
-    name = soup.find("meta", property="og:site_name")
-    return {
+    name = soup.find("meta", property="og:site_name") or soup.find("meta", attrs={"name": "application-name"})
+    cfg = {
         "_pattern": "html",
         "name": name["content"] if name else urllib.parse.urlparse(url).netloc,
         "mainUrl": origin(url),
         "types": ["Movie"],
         "home": [{"title": "Öne Çıkanlar", "url": url, "horizontal": True}],
-        "list": {"mode": "html", "items": item_sel, "title": title, "url": "a@href | absurl", "poster": poster},
+        "list": {"mode": "html", "items": item_sel, "title": title, "url": "@href | absurl || a@href | absurl", "poster": poster},
         "search": {"local": True},
         "detail": _og_detail(),
         "links": _html_links(),
     }
+    # Next.js sitelerinde bölümler HTML bağlantısı yerine JSON-LD içinde olabilir.
+    sample = els[0] if els[0].name == "a" else els[0].select_one("a[href]")
+    if sample:
+        detail_url = urllib.parse.urljoin(url, sample.get("href", ""))
+        detail = get(detail_url)
+        detail.raise_for_status()
+        doc = engine.parse_doc(detail.text, "ld_json", detail_url)
+        series = engine.items_of(doc, "[?@type=TVSeries]")
+        if series and "containsSeason" in series[0].value:
+            cfg["types"] = ["TvSeries"]
+            cfg["list"]["kind"] = "'series'"
+            cfg["detail"] = {
+                "mode": "ld_json", "root": "[?@type=TVSeries]",
+                "title": "name", "plot": "description", "poster": "image | absurl",
+                "year": "datePublished | year", "rating": "aggregateRating.ratingValue",
+                "kind": "'series'",
+                "episodes": {
+                    "items": "containsSeason[*].episode[*]", "name": "name",
+                    "season": r"url | regex:-(\d+)-sezon",
+                    "episode": "episodeNumber", "data": "url | absurl",
+                },
+            }
+    return cfg
 
 
 # ---------------------------------------------------------------- ana akış
@@ -535,25 +569,33 @@ def main():
         if "Referer" in FOUND_HEADERS:
             src.setdefault("links", {}).setdefault("referer", FOUND_HEADERS["Referer"])
     path = os.path.join(a.out, f"{sid}.json")
-    os.makedirs(a.out, exist_ok=True)
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(src, f, ensure_ascii=False, indent=2)
-        f.write("\n")
-
-    print(f"✓ Tarif yazıldı: {path}\n")
-    ok = engine.test(path, verbose=True)
-    if not ok:
-        src["enabled"] = False
+    # Her denemeyi ayrı bir dosyada doğrula; --dry mevcut tarife dokunmamalı.
+    with tempfile.TemporaryDirectory(prefix="cslknn-detect-") as tmp:
+        candidate = os.path.join(tmp, f"{sid}.json")
+        with open(candidate, "w", encoding="utf-8") as f:
+            json.dump(src, f, ensure_ascii=False, indent=2)
+            f.write("\n")
+        ok = engine.test(candidate, verbose=True)
+    src["enabled"] = ok
+    if a.dry:
+        print("\n✓ Deneme tamamlandı; kaynak dosyaları değiştirilmedi.")
+    else:
+        os.makedirs(a.out, exist_ok=True)
+        if not ok and os.path.exists(path):
+            print(f"\n✗ Test geçmedi; mevcut tarif korundu: {path}")
+            sys.exit(1)
         with open(path, "w", encoding="utf-8") as f:
             json.dump(src, f, ensure_ascii=False, indent=2)
             f.write("\n")
-        print("\n! Test tam geçmedi: kaynak KAPALI (enabled=false) olarak eklendi. Tarifi düzenleyip açabilirsiniz.")
-    if a.dry:
-        os.remove(path)
+        print(f"\n✓ Tarif yazıldı: {path}")
+        if not ok:
+            print("! Test tam geçmedi: kaynak KAPALI (enabled=false) olarak eklendi. Tarifi düzenleyip açabilirsiniz.")
     gh_out = os.environ.get("GITHUB_OUTPUT")
     if gh_out:
         with open(gh_out, "a") as f:
             f.write(f"id={sid}\nname={name}\npattern={pattern}\nok={'true' if ok else 'false'}\npath={path}\n")
+    if a.dry and not ok:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

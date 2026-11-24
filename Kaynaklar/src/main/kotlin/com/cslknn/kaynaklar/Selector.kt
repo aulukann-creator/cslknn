@@ -165,7 +165,7 @@ object Selector {
         if (spec.isNullOrBlank()) return emptyList()
         for (alt in spec.split(altSplit)) {
             val parts = alt.split(pipeSplit).map { it.trim() }
-            val vals = transform(rawSelect(node, parts[0]), parts.drop(1), base)
+            val vals = transform(rawSelect(node, parts[0]).filter { it.isNotBlank() }, parts.drop(1), base)
             if (vals.isNotEmpty()) return vals
         }
         return emptyList()

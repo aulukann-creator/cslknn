@@ -52,6 +52,10 @@ https://raw.githubusercontent.com/aulukann-creator/cslknn/main/repo.json
 3. Sistem sitenin yapısını algılar, tarifi üretir, canlı test eder ve repoya ekler. Sonuç raporu işin özet sayfasında görünür.
 4. CloudStream'i yeniden başlatın; yeni kaynak **Kaynaklar** eklentisinde görünür.
 
+Otomasyon yalnızca desteklenen sayfa yapılarını algılar. HTML kartları, JSON-LD içindeki dizi sezon/bölüm listeleri ve sayfada açıkça bulunan gömülü oynatıcı adresleri desteklenir. Her site için yalnızca adres vermek yeterli olmayabilir; farklı API, oturum veya etkileşimli doğrulama kullanan siteler ayrıca uyarlama gerektirir.
+
+Tarif testi listeleme, detay ve oynatıcı bağlantısını kontrol eder. Doğrudan yayın adresi HTTP hatası verirse test başarısız olur. Gömülü oynatıcılarda video çözümleme ve gerçek oynatma ayrıca CloudStream cihazında doğrulanmalıdır; Python testinin geçmesi TV'de oynatma garantisi değildir.
+
 Bir kaynağı kapatmak, açmak, silmek ya da yeniden test etmek için **Actions → Kaynak Yönet** kullanılır.
 
 ### Bilgisayardan ekleme (GitHub'ın ulaşamadığı siteler için)
@@ -67,6 +71,8 @@ Bazı resmi siteler yurt dışı sunuculara kapalıdır ama ev bağlantınızdan
    powershell -ExecutionPolicy Bypass -File tools\kaynak-ekle.ps1 -Adres "https://ornek.com" -Tur belgesel
    ```
    Yalnızca denemek için sona `-Dene` ekleyin.
+
+Deneme mevcut kaynak dosyalarını değiştirmez. Test geçmeyen bir ekleme mevcut aynı adlı tarifi korur; yeni bir kaynak ise kapalı olarak kaydedilir.
 
 ### Erişim analizi
 
