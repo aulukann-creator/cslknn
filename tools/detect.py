@@ -33,6 +33,7 @@ from bs4 import BeautifulSoup
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import engine  # noqa: E402
+import probe as probe_mod  # noqa: E402
 
 S = requests.Session()
 S.headers["User-Agent"] = engine.UA
@@ -436,10 +437,25 @@ def detect_html(url: str, html: str) -> dict | None:
 # ---------------------------------------------------------------- ana akış
 
 
+FOUND_HEADERS: dict = {}
+
+
+class ProbeFailed(Exception):
+    pass
+
+
 def detect(url: str) -> dict:
     cfg = detect_youtube(url)
     if cfg:
         return cfg
+    # Önce erişim analizi: site hangi başlıkları bekliyor, ya da neden erişilemiyor?
+    res = probe_mod.probe(url)
+    print(probe_mod.report(res))
+    if not res.ok:
+        raise ProbeFailed(res.reason)
+    if res.headers:
+        S.headers.update(res.headers)
+        FOUND_HEADERS.update(res.headers)
     r = get(url)
     r.raise_for_status()
     text = r.text
@@ -480,6 +496,9 @@ def main():
     print(f"▶ İnceleniyor: {url}")
     try:
         cfg = detect(url)
+    except ProbeFailed as e:
+        print(f"✗ Kaynak eklenemedi: {e}")
+        sys.exit(1)
     except requests.exceptions.ConnectionError as e:
         if "NameResolution" in str(e) or "Name or service" in str(e) or "No address" in str(e):
             print("✗ Siteye ulaşılamadı: alan adı bulunamadı. Site kapanmış ya da adres yanlış yazılmış olabilir.")
@@ -510,6 +529,11 @@ def main():
     src = {"id": sid, "name": name, "enabled": True, "lang": a.lang,
            "description": f"{name} ({pattern} kalıbıyla otomatik eklendi)", **cfg}
     src["name"] = name
+    if FOUND_HEADERS:
+        # erişim analizinde bulunan başlıklar hem sayfa isteklerinde hem oynatmada kullanılır
+        src["headers"] = {**FOUND_HEADERS, **src.get("headers", {})}
+        if "Referer" in FOUND_HEADERS:
+            src.setdefault("links", {}).setdefault("referer", FOUND_HEADERS["Referer"])
     path = os.path.join(a.out, f"{sid}.json")
     os.makedirs(a.out, exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:

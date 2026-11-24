@@ -68,6 +68,12 @@ Bazı resmi siteler yurt dışı sunuculara kapalıdır ama ev bağlantınızdan
    ```
    Yalnızca denemek için sona `-Dene` ekleyin.
 
+### Erişim analizi
+
+Kaynak eklenirken araç önce siteye farklı başlık kombinasyonlarıyla (User-Agent, Referer, Origin, tarayıcı başlıkları) istek atar, çalışan en sade kombinasyonu bulup tarife yazar. Erişilemiyorsa sebebini raporlar: bölge kısıtı, giriş gerekli, bot koruması ya da sunucu hatası. Bot korumalı siteler eklenmez.
+
+Yalnızca analiz için: `python tools\probe.py https://ornek.com`
+
 Algılanan kalıplar: YouTube kanal/oynatma listesi · M3U kanal listesi · RSS/Atom video akışı · WordPress (wp-json) · JSON API · Next.js sayfaları · genel HTML (kart yapısı + og etiketleri + gömülü oynatıcı).
 
 Tarif dosyalarının yapısı için `sources/` içindeki örneklere ve `tools/engine.py` başındaki açıklamaya bakın. Bir tarifi elle denemek için:
