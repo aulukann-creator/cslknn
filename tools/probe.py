@@ -10,7 +10,8 @@ Tarayıcıda F12 → Ağ sekmesinde elle yapılan incelemenin otomatik hâlidir:
 Bot koruması (Cloudflare doğrulaması, CAPTCHA vb.) tespit edilirse durur; aşmaya çalışmaz.
 
 Kullanım:
-  python3 tools/probe.py https://ornek.com/sayfa
+  python3 tools/probe.py https://ornek.com/sayfa        (erişilemezse ayrıntıları da gösterir)
+  python3 tools/probe.py https://ornek.com/sayfa -v     (her durumda ayrıntılı)
 """
 from __future__ import annotations
 
@@ -25,12 +26,16 @@ UA = ("Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 "
 DESKTOP_UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
               "(KHTML, like Gecko) Chrome/131.0 Safari/537.36")
 
-BOT_MARKERS = [
-    "cf-chl", "challenge-platform", "just a moment", "checking your browser", "attention required",
-    "cf-turnstile", "g-recaptcha", "h-captcha", "hcaptcha", "ddos-guard", "please enable javascript and cookies",
-    "tarayıcınız kontrol ediliyor", "datadome", "perimeterx", "px-captcha", "incapsula", "_incapsula_",
-    "sucuri website firewall", "access denied | ", "bot verification",
+# Doğrulama sayfasına özgü ifadeler (sayfanın kendisi bir "bekleyin, kontrol ediliyor" ekranıysa)
+CHALLENGE_MARKERS = [
+    "cf-chl", "challenge-platform", "<title>just a moment", "checking your browser",
+    "attention required! | cloudflare", "tarayıcınız kontrol ediliyor", "ddos-guard",
+    "px-captcha", "_incapsula_resource", "sucuri website firewall", "bot verification",
+    "captcha-delivery.com",
 ]
+# Normal sayfalarda da bulunabilen ifadeler (form içindeki reCAPTCHA vb.): yalnızca hata yanıtında sayılır
+WEAK_BOT_MARKERS = ["g-recaptcha", "h-captcha", "hcaptcha", "cf-turnstile", "datadome", "perimeterx",
+                    "please enable javascript and cookies", "access denied"]
 LOGIN_MARKERS = ["giriş yap", "oturum aç", "sign in", "log in", "login", "üye ol", "subscribe", "abone ol"]
 REGION_MARKERS = ["bölgenizde", "ülkenizde", "not available in your country", "not available in your region",
                   "geo", "unavailable for legal reasons", "bulunduğunuz konum"]
@@ -61,7 +66,11 @@ def _diagnose(r: requests.Response | None, err: Exception | None) -> tuple[str, 
         return "error", f"Siteye bağlanılamadı: {msg[:160]}"
     body = (r.text or "")[:20000].lower()
     hdrs = {k.lower(): v.lower() for k, v in r.headers.items()}
-    if hdrs.get("cf-mitigated") == "challenge" or any(m in body for m in BOT_MARKERS):
+    is_error = r.status_code >= 400
+    short = len(r.text or "") < 15000  # doğrulama sayfaları küçüktür
+    if hdrs.get("cf-mitigated") == "challenge" \
+            or (any(m in body for m in CHALLENGE_MARKERS) and (is_error or short)) \
+            or (is_error and any(m in body for m in WEAK_BOT_MARKERS)):
         return "bot", ("Site bot koruması kullanıyor (Cloudflare doğrulaması, CAPTCHA vb.). "
                        "Otomatik erişime bilerek kapalı; bu site eklenmez.")
     if r.status_code == 451 or any(m in body for m in REGION_MARKERS[:4]):
@@ -132,6 +141,33 @@ def probe(url: str, referer: str | None = None, timeout: int = 20) -> ProbeResul
     return ProbeResult(False, last_r.status_code if last_r is not None else None, {}, reason, kind, tried)
 
 
+def details(url: str) -> str:
+    """Ayrıntılı teşhis: sade isteğin yanıtını olduğu gibi gösterir."""
+    out = []
+    try:
+        r = requests.get(url, headers={"User-Agent": UA}, timeout=20, allow_redirects=True)
+    except requests.RequestException as e:
+        return f"Bağlantı hatası: {e}"
+    if r.history:
+        out.append("Yönlendirmeler: " + " → ".join(f"{h.status_code} {h.url}" for h in r.history) + f" → {r.url}")
+    out.append(f"Durum: HTTP {r.status_code}  ({len(r.content)} bayt)")
+    for k in ("server", "content-type", "cf-ray", "cf-mitigated", "x-cache", "via", "set-cookie", "location"):
+        if k in {h.lower() for h in r.headers}:
+            v = next(v for h, v in r.headers.items() if h.lower() == k)
+            out.append(f"  {k}: {v[:150]}")
+    import re as _re
+    title = _re.search(r"<title[^>]*>(.*?)</title>", r.text or "", _re.S | _re.I)
+    if title:
+        out.append(f"Sayfa başlığı: {title.group(1).strip()[:120]}")
+    text = _re.sub(r"<script.*?</script>|<style.*?</style>|<[^>]+>", " ", r.text or "", flags=_re.S | _re.I)
+    text = _re.sub(r"\s+", " ", text).strip()
+    out.append(f"Sayfa metni (ilk 300 karakter): {text[:300]}")
+    scripts = len(_re.findall(r"<script", r.text or "", _re.I))
+    if scripts and len(text) < 200:
+        out.append("Not: Sayfada neredeyse hiç metin yok ama çok sayıda script var; içerik JavaScript ile oluşuyor olabilir.")
+    return "\n".join(out)
+
+
 def report(res: ProbeResult) -> str:
     lines = ["Erişim analizi:"]
     for label, code in res.tried:
@@ -146,6 +182,9 @@ if __name__ == "__main__":
         sys.exit(2)
     res = probe(sys.argv[1])
     print(report(res))
+    if "-v" in sys.argv or not res.ok:
+        print("\nAyrıntılı teşhis:")
+        print(details(sys.argv[1]))
     if res.headers:
         import json
         print("\nTarife eklenecek başlıklar:")
